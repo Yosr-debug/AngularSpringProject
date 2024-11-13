@@ -1,0 +1,44 @@
+<div class="layout-topbar">
+    <a class="layout-topbar-logo" routerLink="">
+        <img src="assets/layout/images/{{ layoutService.config.colorScheme === 'light' ? 'logo-dark' : 'logo-white' }}.svg" alt="logo">
+        <span>SAKAI</span>
+    </a>
+
+    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+        <i class="pi pi-bars"></i>
+    </button>
+
+    <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" (click)="layoutService.showProfileSidebar()">
+        <i class="pi pi-ellipsis-v"></i>
+    </button>
+
+    <div #topbarmenu class="layout-topbar-menu" [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
+        <button class="p-link layout-topbar-button">
+            <i class="pi pi-calendar"></i>
+            <span>Calendar</span>
+        </button>
+        
+        <!-- Profile Button -->
+        <div *ngIf="user; else loginButton" class="p-link layout-topbar-button">
+            <i class="pi pi-user"></i>
+            <span>{{ user.nomUser }} {{ user.prenomUser }}</span>
+            <button class="p-link layout-topbar-button" (click)="logout()">
+                <i class="pi pi-sign-out"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+        
+        <!-- Show Login Button if User Not Logged In -->
+        <ng-template #loginButton>
+            <button class="p-link layout-topbar-button" (click)="router.navigate(['/login'])">
+                <i class="pi pi-sign-in"></i>
+                <span>Login</span>
+            </button>
+        </ng-template>
+        
+        <button class="p-link layout-topbar-button" [routerLink]="'/documentation'">
+            <i class="pi pi-cog"></i>
+            <span>Settings</span>
+        </button>
+    </div>
+</div>

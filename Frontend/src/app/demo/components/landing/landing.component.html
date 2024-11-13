@@ -1,0 +1,156 @@
+<div class="surface-0 flex justify-content-center">
+    <div id="home" class="landing-wrapper overflow-hidden">
+        <div class="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 flex align-items-center justify-content-between relative lg:static mb-3">
+            <a class="flex align-items-center" (click)="router.navigate(['/landing'])">
+                <img src="assets/layout/images/Eventica (1).png" alt="Sakai Logo" height="100" class="mr-0 lg:mr-2"><span class="text-900 font-medium text-2xl line-height-3 mr-8">EVENTICA</span>
+            </a>
+            <div class="align-items-center surface-0 flex-grow-1 justify-content-between hidden lg:flex absolute lg:static w-full left-0 px-6 lg:px-0 z-2" style="top:120px">
+                <ul class="list-none p-0 m-0 flex lg:align-items-center select-none flex-column lg:flex-row cursor-pointer">
+                    <li>
+                        <a (click)="router.navigate(['/landing'], {fragment: 'home'})" pRipple class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">
+                           <span>Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a (click)="router.navigate(['/landing'], {fragment: 'features'})" pRipple class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">
+                            <span>Features</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a (click)="router.navigate(['/landing'], {fragment: 'highlights'})" pRipple class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">
+                            <span>Highlights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a (click)="router.navigate(['/landing'], {fragment: 'pricing'})" pRipple class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">
+                            <span>Pricing</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
+                    <ng-container *ngIf="!isLoggedIn; else userDropdown">
+                        <button pButton pRipple label="Login" (click)="navigateToLogin()" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></button>
+                    </ng-container>
+                    <ng-template #userDropdown>
+                        <div class="user-dropdown-wrapper" (click)="toggleDropdown()">
+                            <p-button
+                                label="{{ nomUser }} {{ prenomUser }}"
+                                icon="pi pi-user"
+                                class="p-button-rounded p-button-text"
+                                [pTooltip]="dropdownOpen ? '' : 'Account'"
+                                tooltipPosition="bottom">
+                            </p-button>
+                            <div *ngIf="dropdownOpen" class="dropdown-content" (click)="$event.stopPropagation()">
+                                <button pButton label="Logout" icon="pi pi-sign-out" (click)="logout()"></button>
+                            </div>
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Event Cards Grid -->
+        <!-- Review Dialog -->
+<p-dialog header="Add / Edit Review" [(visible)]="reviewDialogVisible" [modal]="true" [closable]="true" [style]="{width: '400px'}">
+    <div class="p-fluid">
+        <div class="p-field">
+            <label for="note">Rating (out of 5)</label>
+            <p-rating [(ngModel)]="currentAvis.noteAvis" [stars]="5" [cancel]="false"></p-rating>
+        </div>
+        <div class="p-field">
+            <label for="comment">Comment</label>
+            <textarea id="comment" [(ngModel)]="currentAvis.commentaire" rows="3" class="p-inputtext p-component"></textarea>
+        </div>
+    </div>
+    <p-footer>
+        <button pButton label="Save" icon="pi pi-check" (click)="saveReview()" styleClass="p-button-text"></button>
+        <button pButton label="Cancel" icon="pi pi-times" (click)="closeReviewDialog()" styleClass="p-button-text p-button-secondary"></button>
+    </p-footer>
+</p-dialog>
+<div class="flex flex-column align-items-center mb-5">
+    <div class="flex flex-wrap gap-4">
+        <!-- Sort by Dropdown -->
+        <p-dropdown [options]="sortOptions" [(ngModel)]="selectedSortOption" (onChange)="sortEvents()" placeholder="Sort by"></p-dropdown>
+
+        <!-- Category Filter -->
+        <p-dropdown [options]="categoryOptions" [(ngModel)]="selectedCategory" placeholder="Category" (onChange)="filterEvents()"></p-dropdown>
+
+        <!-- Date Range Filter -->
+        <div class="flex align-items-center">
+            <label for="startDate" class="mr-2">Start Date:</label>
+            <input id="startDate" type="date" [(ngModel)]="startDate" (change)="filterEvents()" class="p-inputtext p-component" />
+        </div>
+        <div class="flex align-items-center">
+            <label for="endDate" class="mr-2">End Date:</label>
+            <input id="endDate" type="date" [(ngModel)]="endDate" (change)="filterEvents()" class="p-inputtext p-component" />
+        </div>
+    </div>
+</div>
+
+<!-- Event Cards Grid -->
+<div class="grid mt-8 pb-2 md:pb-8 event-grid">
+    <div *ngFor="let event of filteredEvents" class="col-12 md:col-6 lg:col-4 p-2">
+        <div class="p-4 flex flex-column border-200 event-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius:10px; min-height: 350px;">
+            <!-- Category and Status -->
+            <div class="flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
+                <div class="flex align-items-center">
+                    <i class="pi pi-tag mr-2"></i>
+                    <span class="font-semibold">{{ event.categevent?.nomCateg || 'No Category' }}</span>
+                </div>
+                <span [class]="'event-badge status-' + event.status">{{ event.status }}</span>
+            </div>
+
+            <!-- Title, Description, Rating, and Image -->
+            <div class="flex flex-column align-items-center text-center mb-3">
+                <img [src]="'assets/demo/images/galleria/galleria' + event.idEvent + '.jpg'" [alt]="event.titreEvent" class="w-9 shadow-2 my-3 mx-0"/>
+                <div class="text-2xl font-bold">{{ event.titreEvent }}</div>
+                <div class="mb-3">{{ event.descriptionEvent }}</div>
+                <p-rating [ngModel]="event.averageRating" [readonly]="true" [cancel]="false"></p-rating>
+
+            </div>
+
+            <!-- Event Date and Address -->
+            <div class="mb-2">
+                <div><i class="pi pi-calendar mr-2"></i><b>Start Date:</b> {{ event.dateDebut | date: 'longDate' }}</div>
+                <div><i class="pi pi-calendar mr-2"></i><b>End Date:</b> {{ event.dateFin | date: 'longDate' }}</div>
+                <div><i class="pi pi-map-marker mr-2"></i><b>Address:</b> {{ event.adresse }}, {{ event.ville }}</div>
+            </div>
+
+            <!-- Capacity and Participation Button -->
+            <div class="flex align-items-center justify-content-between mt-3">
+                <span><b>Remaining Places:</b> {{ event.placesRestantes }} / {{ event.capaciteMax }}</span>
+
+                <!-- Show 'Already Participated' if the user has participated, otherwise show 'Event is Full' if full, else 'Participate' -->
+                <ng-container *ngIf="!hasParticipated(event.idEvent); else reviewTemplate">
+                    <p-button
+                        *ngIf="event.placesRestantes > 0; else fullTemplate"
+                        icon="pi pi-calendar-plus"
+                        label="Participate"
+                        (click)="participate(event.idEvent)"
+                        styleClass="p-button-sm">
+                    </p-button>
+                    <ng-template #fullTemplate>
+                        <p-button
+                            label="Event is Full"
+                            styleClass="p-button-sm p-button-secondary"
+                            [disabled]="true">
+                        </p-button>
+                    </ng-template>
+                </ng-container>
+            </div>
+
+            <!-- Review Template -->
+            <ng-template #reviewTemplate>
+                <div class="mt-3">
+                    <p-button *ngIf="!hasReviewed(event.idEvent)" label="Add Review" (click)="openReviewDialog(event.idEvent)" styleClass="p-button-sm"></p-button>
+                    <p-button *ngIf="hasReviewed(event.idEvent)" label="Edit Review" (click)="openReviewDialog(event.idEvent)" styleClass="p-button-sm"></p-button>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</div>
+
+        
+        
+    </div>
+</div>

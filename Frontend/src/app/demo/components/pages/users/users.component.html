@@ -1,0 +1,110 @@
+<div class="grid">
+    <div class="col-12">
+      <div class="card px-6 py-6">
+        <p-toast></p-toast>
+        <p-toolbar>
+          <ng-template pTemplate="left">
+            <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+            <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelected()" [di
+            bled]="!selectedUsers.length"></button>
+          </ng-template>
+        </p-toolbar>
+  
+        <p-table #dt [value]="users" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 20, 30]" [(selection)]="selectedUsers" selectionMode="multiple" dataKey="idUser">
+          <ng-template pTemplate="caption">
+            <h5 class="m-0">Manage Users</h5>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+              <th *ngFor="let col of cols" pSortableColumn="{{col.field}}">{{col.header}} <p-sortIcon field="{{col.field}}"></p-sortIcon></th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-user>
+            <tr>
+              <td><p-tableCheckbox [value]="user"></p-tableCheckbox></td>
+              <td *ngFor="let col of cols">{{ user[col.field] }}</td>
+              <td>
+                <button pButton icon="pi pi-eye" class="p-button-rounded p-button-info mr-2" (click)="viewParticipations(user)"></button>
+                <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editUser(user)"></button>
+                <button pButton icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteUser(user)"></button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+  
+      <!-- User Dialog -->
+    <p-dialog [(visible)]="userDialog" [style]="{width: '450px'}" header="User Details" [modal]="true" class="p-fluid">
+        <ng-template pTemplate="content">
+            <div class="field">
+                <label for="nomUser">First Name</label>
+                <input id="nomUser" type="text" [(ngModel)]="user.nomUser" pInputText required autofocus [ngClass]="{'ng-invalid ng-dirty': submitted && !user.nomUser}" />
+                <small *ngIf="submitted && !user.nomUser" class="ng-invalid">First Name is required.</small>
+            </div>
+            <div class="field">
+                <label for="prenomUser">Last Name</label>
+                <input id="prenomUser" type="text" [(ngModel)]="user.prenomUser" pInputText required [ngClass]="{'ng-invalid ng-dirty': submitted && !user.prenomUser}" />
+                <small *ngIf="submitted && !user.prenomUser" class="ng-invalid">Last Name is required.</small>
+            </div>
+            <div class="field">
+                <label for="roleUser">Role</label>
+                <p-dropdown id="roleUser" [(ngModel)]="user.roleUser" [options]="roles" optionLabel="label" optionValue="value" placeholder="Select Role"></p-dropdown>
+            </div>
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" type="email" [(ngModel)]="user.emailUser" pInputText required [ngClass]="{'ng-invalid ng-dirty': submitted && !user.emailUser}" />
+                <small *ngIf="submitted && !user.emailUser" class="ng-invalid">Email is required.</small>
+            </div>
+            <div class="field">
+                <label for="passwordUser">Password</label>
+                <p-password id="passwordUser" [(ngModel)]="user.passwordUser" pInputText placeholder="Enter password" required [toggleMask]="true" [ngClass]="{'ng-invalid ng-dirty': submitted && !user.passwordUser}" style="width: 100%;"></p-password>
+                <small *ngIf="submitted && !user.passwordUser" class="ng-invalid">Password is required.</small>
+            </div>
+            
+        </ng-template>
+        <ng-template pTemplate="footer">
+            <button pButton label="Cancel" icon="pi pi-times" class="p-button-text" (click)="userDialog = false"></button>
+            <button pButton label="Save" icon="pi pi-check" class="p-button-text" (click)="saveUser()"></button>
+        </ng-template>
+    </p-dialog>
+
+  
+      <!-- Delete Confirmation Dialog -->
+      <p-dialog [(visible)]="deleteDialog" header="Confirm" [modal]="true" [style]="{width: '450px'}">
+        <div class="flex align-items-center justify-content-center">
+          <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+          <span>Are you sure you want to delete <b>{{ user.nomUser }} {{ user.prenomUser }}</b>?</span>
+        </div>
+        <ng-template pTemplate="footer">
+          <button pButton icon="pi pi-times" class="p-button-text" label="No" (click)="deleteDialog = false"></button>
+          <button pButton icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+        </ng-template>
+      </p-dialog>
+  
+      <!-- View Participations Dialog -->
+      <p-dialog [(visible)]="viewParticipationsDialog" header="Event Participations" [modal]="true" [style]="{width: '600px'}">
+        <p-table [value]="participations" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Event Name</th>
+              <th>Date</th>
+              <th>Location</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-participation>
+            <tr>
+              <td>{{ participation.titreEvent }}</td>
+              <td>{{ participation.dateDebut | date }}</td>
+              <td>{{ participation.adresse }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <ng-template pTemplate="footer">
+          <button pButton label="Close" icon="pi pi-times" class="p-button-text" (click)="viewParticipationsDialog = false"></button>
+        </ng-template>
+      </p-dialog>
+    </div>
+  </div>
+  

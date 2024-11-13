@@ -1,0 +1,174 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card px-6 py-6">
+            <p-toast></p-toast>
+            <p-toolbar>
+                <ng-template pTemplate="left">
+                    <div class="my-2">
+                        <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2" (click)="openNew()"></button>
+                        <button pButton pRipple label="Delete" icon="pi pi-trash" class="p-button-danger" (click)="deleteSelected()" [disabled]="!selectedEvents.length && !selectedCategories.length"></button>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="right">
+                    <button pButton pRipple label="Switch to Events" (click)="switchEntity('event')" [disabled]="entityType === 'event'"></button>
+                    <button pButton pRipple label="Switch to Categories" (click)="switchEntity('category')" [disabled]="entityType === 'category'"></button>
+                </ng-template>
+            </p-toolbar>
+
+            <p-table #dt [value]="entityType === 'event' ? events : categories" [paginator]="true" [rows]="10" [globalFilterFields]="['titreEvent', 'descriptionEvent', 'adresse', 'ville']" [rowsPerPageOptions]="[10, 20, 30]" currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" [responsiveLayout]="'scroll'" [(selection)]="selectedEntities" selectionMode="multiple" dataKey="idEvent">
+                <ng-template pTemplate="caption">
+                    <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
+                        <h5 class="m-0">Manage {{ entityType === 'event' ? 'Events' : 'Categories' }}</h5>
+                        <span class="block mt-2 md:mt-0 p-input-icon-left">
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Search..." class="w-full sm:w-auto"/>
+                        </span>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 3rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                        <th *ngFor="let col of cols" pSortableColumn="{{col.field}}">{{col.header}} <p-sortIcon field="{{col.field}}"></p-sortIcon></th>
+                        <th></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-entity>
+                    <tr>
+                        <td><p-tableCheckbox [value]="entity"></p-tableCheckbox></td>
+                        <td *ngFor="let col of cols">
+                            <ng-container *ngIf="col.field === 'categorieevent'; else defaultField">
+                                {{ entity.categevent?.nomCateg || 'No Category' }}
+                            </ng-container>
+                            <ng-template #defaultField>
+                                {{ entity[col.field] }}
+                            </ng-template>
+                        </td>
+                        
+                        <td>
+                            <button *ngIf="entityType === 'event'" pButton icon="pi pi-eye" class="p-button-rounded p-button-info mr-2" (click)="viewAvis(entity)"></button>
+                            <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" (click)="editEntity(entity)"></button>
+                            <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning" (click)="deleteEntity(entity)"></button>
+                        </td>
+                        
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+
+        <!-- Dialog for Events -->
+        <p-dialog [(visible)]="eventDialog" [style]="{width: '500px'}" header="Event Details" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <div class="field">
+                    <label for="titreEvent">Title</label>
+                    <input type="text" id="titreEvent" [(ngModel)]="event.titreEvent" pInputText required autofocus [ngClass]="{'ng-invalid ng-dirty': submitted && !event.titreEvent}"/>
+                    <small *ngIf="submitted && !event.titreEvent" class="ng-invalid">Title is required.</small>
+                </div>
+                <div class="field">
+                    <label for="descriptionEvent">Description</label>
+                    <textarea id="descriptionEvent" [(ngModel)]="event.descriptionEvent" pInputTextarea required></textarea>
+                </div>
+                <div class="field">
+                    <label for="categorieevent">Category</label>
+                    <p-dropdown id="categorieevent" [(ngModel)]="selectedCategoryId" [options]="categories" optionLabel="nomCateg" optionValue="idCateg" placeholder="Select a Category"></p-dropdown>
+                </div>
+                <div class="field">
+                    <label for="dateDebut">Start Date</label>
+                    <p-calendar id="dateDebut" [(ngModel)]="event.dateDebut" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+
+
+                </div>
+                <div class="field">
+                    <label for="dateFin">End Date</label>
+                    <p-calendar id="dateFin" [(ngModel)]="event.dateFin" dateFormat="yy-mm-dd" [showIcon]="true"></p-calendar>
+
+
+                </div>
+                <div class="field">
+                    <label for="adresse">Address</label>
+                    <input type="text" id="adresse" [(ngModel)]="event.adresse" pInputText/>
+                </div>
+                <div class="field">
+                    <label for="ville">City</label>
+                    <input type="text" id="ville" [(ngModel)]="event.ville" pInputText/>
+                </div>
+                <div class="field">
+                    <label for="capaciteMax">Max Capacity</label>
+                    <p-inputNumber [(ngModel)]="event.capaciteMax" [min]="1"></p-inputNumber>
+                </div>
+                
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <button pButton label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton label="Save" icon="pi pi-check" class="p-button-text" (click)="saveEntity()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Dialog for Categories -->
+        <p-dialog [(visible)]="categoryDialog" [style]="{width: '400px'}" header="Category Details" [modal]="true" class="p-fluid">
+            <ng-template pTemplate="content">
+                <div class="field">
+                    <label for="nomCateg">Category Name</label>
+                    <input type="text" id="nomCateg" [(ngModel)]="category.nomCateg" pInputText required autofocus [ngClass]="{'ng-invalid ng-dirty': submitted && !category.nomCateg}"/>
+                    <small *ngIf="submitted && !category.nomCateg" class="ng-invalid">Category name is required.</small>
+                </div>
+                <div class="field">
+                    <label for="descriptionCateg">Description</label>
+                    <textarea id="descriptionCateg" [(ngModel)]="category.descriptionCateg" pInputTextarea required></textarea>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="footer">
+                <button pButton label="Cancel" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+                <button pButton label="Save" icon="pi pi-check" class="p-button-text" (click)="saveEntity()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Confirm Delete Dialog -->
+        <p-dialog [(visible)]="deleteDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span *ngIf="entityType === 'event'">Are you sure you want to delete <b>{{event.titreEvent}}</b>?</span>
+                <span *ngIf="entityType === 'category'">Are you sure you want to delete <b>{{category.nomCateg}}</b>?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton icon="pi pi-times" class="p-button-text" label="No" (click)="deleteDialog = false"></button>
+                <button pButton icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDelete()"></button>
+            </ng-template>
+        </p-dialog>
+
+        <!-- Confirm Delete Selected Dialog -->
+        <p-dialog [(visible)]="deleteSelectedDialog" header="Confirm" [modal]="true" [style]="{width:'450px'}">
+            <div class="flex align-items-center justify-content-center">
+                <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem"></i>
+                <span>Are you sure you want to delete the selected records?</span>
+            </div>
+            <ng-template pTemplate="footer">
+                <button pButton icon="pi pi-times" class="p-button-text" label="No" (click)="deleteSelectedDialog = false"></button>
+                <button pButton icon="pi pi-check" class="p-button-text" label="Yes" (click)="confirmDeleteSelected()"></button>
+            </ng-template>
+        </p-dialog>
+        <!-- Avis Dialog -->
+        <p-dialog [(visible)]="avisDialog" header="Event Reviews" [modal]="true" [style]="{width: '500px'}">
+            <p-table [value]="avisList" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Reviewer</th>
+                        <th>Comment</th>
+                        <th>Rating</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-avis>
+                    <tr>
+                        <td>{{ avis.clientUser?.nomUser }} {{ avis.clientUser?.prenomUser }}</td>
+                        <td>{{ avis.commentaire }}</td>
+                        <td>
+                            <p-rating [(ngModel)]="avis.noteAvis" [readonly]="true" stars="5"></p-rating>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+            <ng-template pTemplate="footer">
+                <button pButton label="Close" icon="pi pi-times" class="p-button-text" (click)="avisDialog = false"></button>
+            </ng-template>
+        </p-dialog>
+    </div>
+</div>
